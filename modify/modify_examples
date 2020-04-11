@@ -1,0 +1,163 @@
+#!/bin/sh
+
+
+
+printDictStructure() {
+echo "All files print: "
+echo ""
+for file in $(find "$1" -mindepth 1)
+do
+	if [[ ! -d "$file" ]] ; then
+		echo "$file"
+	fi
+done
+
+echo ""
+echo "All dir print: "
+
+for file in $(find "$1" -mindepth 1)
+do
+	if [[ -d "$file" ]] ; then
+		echo "$file"
+	fi
+done
+
+}
+
+
+printDictStructure "$1"
+
+
+echo ""
+echo ""
+echo ""
+echo ""
+echo "modify -r -u /home/sebastian/Desktop/photo rose jutro monday bob"
+bash /home/sebastian/Desktop/shellScripts/modify/bin/modify -r -u /home/sebastian/Desktop/photo rose jutro monday bob
+printDictStructure "$1"
+
+
+echo ""
+echo ""
+echo ""
+echo ""
+echo "modify -r -l /home/sebastian/Desktop/photo ROSE JUTRO MONDAY BOB"
+bash /home/sebastian/Desktop/shellScripts/modify/bin/modify -r -l /home/sebastian/Desktop/photo ROSE JUTRO MONDAY BOB
+printDictStructure "$1"
+
+
+echo ""
+echo ""
+echo ""
+echo ""
+echo "modify -u /home/sebastian/Desktop/photo chocolate sweet"
+bash /home/sebastian/Desktop/shellScripts/modify/bin/modify -u /home/sebastian/Desktop/photo chocolate sweet
+printDictStructure "$1"
+
+
+echo ""
+echo ""
+echo ""
+echo ""
+echo "modify -l /home/sebastian/Desktop/photo CHOCOLATE SWEET"
+bash /home/sebastian/Desktop/shellScripts/modify/bin/modify -l /home/sebastian/Desktop/photo CHOCOLATE SWEET
+printDictStructure "$1"
+
+
+echo ""
+echo ""
+echo ""
+echo ""
+echo "modify -r s/e/QW/ /home/sebastian/Desktop/photo chocolate sweet bob frankes"
+bash /home/sebastian/Desktop/shellScripts/modify/bin/modify -r s/e/QW/ /home/sebastian/Desktop/photo chocolate sweet bob frankes
+printDictStructure "$1"
+
+
+echo ""
+echo ""
+echo ""
+echo ""
+echo "modify -r s/QW/e/ /home/sebastian/Desktop/photo chocolate sweet bob"
+bash /home/sebastian/Desktop/shellScripts/modify/bin/modify -r s/QW/e/ /home/sebastian/Desktop/photo chocolatQW swQWet bob frankQWs
+printDictStructure "$1"
+
+
+echo ""
+echo ""
+echo ""
+echo ""
+echo "modify -h"
+bash /home/sebastian/Desktop/shellScripts/modify/bin/modify -h
+
+
+
+echo ""
+echo ""
+echo ""
+echo ""
+echo "modify -l -r /home/sebastian/Desktop/photo/school => such path does not exist:"
+bash /home/sebastian/Desktop/shellScripts/modify/bin/modify -l -r /home/sebastian/Desktop/photo/school rose
+
+
+
+echo ""
+echo ""
+echo ""
+echo ""
+echo "modify -r -u /home/sebastian/Desktop/photo/school => such path does not exist:"
+bash /home/sebastian/Desktop/shellScripts/modify/bin/modify -r -u /home/sebastian/Desktop/photo/school rose
+
+
+
+echo ""
+echo ""
+echo ""
+echo ""
+echo "modify -u /home/sebastian/Desktop/photo/school => such path does not exist:"
+bash /home/sebastian/Desktop/shellScripts/modify/bin/modify -u /home/sebastian/Desktop/photo/school rose
+
+
+
+echo ""
+echo ""
+echo ""
+echo ""
+echo "modify -l /home/sebastian/Desktop/photo/school => such path does not exist:"
+bash /home/sebastian/Desktop/shellScripts/modify/bin/modify -l /home/sebastian/Desktop/photo/school rose
+
+
+
+echo ""
+echo ""
+echo ""
+echo ""
+echo "modify -r s/e/FK/ /home/sebastian/Desktop/photo/school => such path does not exist:"
+bash /home/sebastian/Desktop/shellScripts/modify/bin/modify -r "s/e/FK/" /home/sebastian/Desktop/photo/school rose
+
+
+echo ""
+echo ""
+echo ""
+echo ""
+echo "modify s/e/FK/ /home/sebastian/Desktop/photo => incorrect sed pattern:"
+bash /home/sebastian/Desktop/shellScripts/modify/bin/modify "s/e/FK/gkgh/lgl" /home/sebastian/Desktop/photo/school rose
+
+
+
+echo ""
+echo ""
+echo ""
+echo ""
+echo "Output for no arguments"
+bash /home/sebastian/Desktop/shellScripts/modify/bin/modify
+
+
+
+echo ""
+echo ""
+echo ""
+echo ""
+echo "modify -u -u -u -u /home/sebastian/Desktop/photo chocolate sweet"
+bash /home/sebastian/Desktop/shellScripts/modify/bin/modify -u -u -u -u /home/sebastian/Desktop/photo chocolate sweet
+
+

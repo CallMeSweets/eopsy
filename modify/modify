@@ -1,0 +1,111 @@
+#!/bin/sh
+
+REC=0;
+dictPath="";
+LOWER_SED_PATTERN="s/.*/\L&/"
+UPPER_SED_PATTERN="s/.*/\U&/"
+NO_SED_PATTERN=""
+numOfChangedFile=0
+
+printHelp() {
+	echo "[-r] recursion      change all file names in directory and subdirectiories"
+	echo "[-l] lowerizing     change file name to lower letter"
+	echo "[-u] uppercasing    change file name to upper letter"
+	echo "<sed pattern>     change file name with given sed pattern"    
+	echo "modify [-r] [-l|-u] <dir/file names...>"  
+	echo "modify [-r] <sed pattern> <dir/file names...>"
+}
+
+printError(){
+	echo "Error: $1" 
+}
+
+printInfo(){
+	echo "Info: $1" 
+}
+
+checkMultipleParams() {
+	if [[ ! "$sedPattern" == "$NO_SED_PATTERN" ]] ; then
+		echo "Error: multiple param: $1"
+		exit
+	fi
+}
+
+rename() {
+	oldFileName=$(basename "$file")
+	newFileName=$(echo $oldFileName | sed $sedPattern)	
+
+	if [[ ! -d "$file" ]] ; then
+  	    pathForNewFileName=$(dirname "$file")"/"$newFileName
+	    if [[ ! -f "$pathForNewFileName" ]] ; then
+	        mv $file "$pathForNewFileName"	 
+		(( numOfChangedFile++ ))
+	    else
+	        printInfo "Changed file with name: $oldFileName already exist, so does it stay with no changes"
+	    fi
+    	  	
+	fi
+}
+
+renameFiles() {	
+	if [[ ! -d "$dictPath" ]] ; then
+	        printError "Such path does not exist: $dictPath"
+		exit
+   	fi
+
+	if [[ "$REC" -eq 1 ]] ; then
+	   for file in $(find "$dictPath" -mindepth 1)
+	      do
+		 fileName=$(basename "$file")
+		 if [[ "$fileName" == "$1" ]] ; then
+    		    rename "$file"
+		 fi
+	      done
+	else
+	    for file in $(find "$dictPath" -mindepth 1 -maxdepth 1)
+  	       do
+            	  fileName=$(basename "$file")
+		  if [[ "$fileName" == "$1" ]] ; then
+    		    rename "$file"
+		  fi
+  	       done
+	fi
+}
+
+if [[ "$#" -eq 0 ]] ; then	
+	echo "Illegal number of parameters, check help: -h"   
+	exit 
+fi
+
+sedPattern="$NO_SED_PATTERN"
+while [[ -n "$1" ]] ; do
+	case "$1" in
+		"-r") REC=1 ;;
+		"-l") checkMultipleParams $1; sedPattern="$LOWER_SED_PATTERN" ;;
+		"-u") checkMultipleParams $1; sedPattern="$UPPER_SED_PATTERN" ;;
+		"-h") printHelp; exit ;;
+		-*) printError "bad option $1"; exit ;;
+		 *)
+			if [[ "$sedPattern" == "$NO_SED_PATTERN" ]] ; then
+				sedPattern="$1"
+
+				isSedPatternCorrect=$(echo "$sedPattern" | sed "s/s\/.\+\/.*\/$//")
+				if ! [ "$isSedPatternCorrect" = "" ]; then
+					printError "given <sed pattern> is incorrect: $sedPattern"
+					exit 
+				fi
+
+			elif [[ "$dictPath" == "" ]] ; then	
+				dictPath="$1"
+
+			else
+				renameFiles $1			
+			fi
+		;;
+	esac
+	shift
+done
+echo "Number of changed files: $numOfChangedFile"
+exit
+
+
