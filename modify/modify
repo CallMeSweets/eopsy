@@ -1,9 +1,9 @@
 #!/bin/sh
 
 REC=0;
-dictPath="";
-LOWER_SED_PATTERN="s/.*/\L&/"
-UPPER_SED_PATTERN="s/.*/\U&/"
+dictPath=""; #variable to hold path where files should be changed
+LOWER_SED_PATTERN="s/.*/\L&/" # SED pattern for lower letters
+UPPER_SED_PATTERN="s/.*/\U&/" # SED pattern for upper letters
 NO_SED_PATTERN=""
 numOfChangedFile=0
 
@@ -32,39 +32,39 @@ checkMultipleParams() {
 }
 
 rename() {
-	oldFileName=$(basename "$file")
-	newFileName=$(echo $oldFileName | sed $sedPattern)	
+	oldFileName=$(basename "$file")			# get old name of the file from path 
+	newFileName=$(echo $oldFileName | sed $sedPattern)	# change name with given pattern
 
-	if [[ ! -d "$file" ]] ; then
-  	    pathForNewFileName=$(dirname "$file")"/"$newFileName
-	    if [[ ! -f "$pathForNewFileName" ]] ; then
-	        mv $file "$pathForNewFileName"	 
+	if [[ ! -d "$file" ]] ; then		# check if file is not directory then change name
+  	    pathForNewFileName=$(dirname "$file")"/"$newFileName		# create relative path with file name
+	    if [[ ! -f "$pathForNewFileName" ]] ; then		# check if file with changed name does not exist
+	        mv $file "$pathForNewFileName"	 		# if no change the name
 		(( numOfChangedFile++ ))
 	    else
-	        printInfo "Changed file with name: $oldFileName already exist, so does it stay with no changes"
+	        printInfo "Changed file with name: $oldFileName already exist, so does it stay with no changes" # if exist printInfo
 	    fi
     	  	
 	fi
 }
 
 renameFiles() {	
-	if [[ ! -d "$dictPath" ]] ; then
+	if [[ ! -d "$dictPath" ]] ; then		#check if given path exist
 	        printError "Such path does not exist: $dictPath"
 		exit
    	fi
 
-	if [[ "$REC" -eq 1 ]] ; then
-	   for file in $(find "$dictPath" -mindepth 1)
+	if [[ "$REC" -eq 1 ]] ; then		# check if this is recursive modify
+	   for file in $(find "$dictPath" -mindepth 1)		# use find method to get all files in given path, mindepth is set for recursive
 	      do
-		 fileName=$(basename "$file")
-		 if [[ "$fileName" == "$1" ]] ; then
+		 fileName=$(basename "$file")		# get file name from path
+		 if [[ "$fileName" == "$1" ]] ; then	# if this name is equal name from argument rename it
     		    rename "$file"
 		 fi
 	      done
 	else
-	    for file in $(find "$dictPath" -mindepth 1 -maxdepth 1)
+	    for file in $(find "$dictPath" -mindepth 1 -maxdepth 1) 	# find files only from given folder, not recursive
   	       do
-            	  fileName=$(basename "$file")
+            	  fileName=$(basename "$file")		# same as before
 		  if [[ "$fileName" == "$1" ]] ; then
     		    rename "$file"
 		  fi
@@ -72,34 +72,34 @@ renameFiles() {
 	fi
 }
 
-if [[ "$#" -eq 0 ]] ; then	
+if [[ "$#" -eq 0 ]] ; then	# check the number of params if ==0 then throw error
 	echo "Illegal number of parameters, check help: -h"   
 	exit 
 fi
 
 sedPattern="$NO_SED_PATTERN"
-while [[ -n "$1" ]] ; do
+while [[ -n "$1" ]] ; do 	#while loop to read arguments from input
 	case "$1" in
-		"-r") REC=1 ;;
-		"-l") checkMultipleParams $1; sedPattern="$LOWER_SED_PATTERN" ;;
-		"-u") checkMultipleParams $1; sedPattern="$UPPER_SED_PATTERN" ;;
+		"-r") REC=1 ;; # set recursive option 
+		"-l") checkMultipleParams $1; sedPattern="$LOWER_SED_PATTERN" ;;	 # if -l set lower letter pattern
+		"-u") checkMultipleParams $1; sedPattern="$UPPER_SED_PATTERN" ;;	 # if -r set upper letter pattern
 		"-h") printHelp; exit ;;
 		-*) printError "bad option $1"; exit ;;
 		 *)
-			if [[ "$sedPattern" == "$NO_SED_PATTERN" ]] ; then
+			if [[ "$sedPattern" == "$NO_SED_PATTERN" ]] ; then 	# if SED Pattern is empty then set from arugment
 				sedPattern="$1"
 
-				isSedPatternCorrect=$(echo "$sedPattern" | sed "s/s\/.\+\/.*\/$//")
-				if ! [ "$isSedPatternCorrect" = "" ]; then
+				isSedPatternCorrect=$(echo "$sedPattern" | sed "s/s\/.\+\/.*\/$//") 	#check if SED Pattern is correct with regex
+				if ! [ "$isSedPatternCorrect" = "" ]; then				# if not stop and print error
 					printError "given <sed pattern> is incorrect: $sedPattern"
 					exit 
 				fi
 
-			elif [[ "$dictPath" == "" ]] ; then	
+			elif [[ "$dictPath" == "" ]] ; then		# if dictPath is empty then read from input argument
 				dictPath="$1"
 
 			else
-				renameFiles $1			
+				renameFiles $1		# all other arguments are files so change them	
 			fi
 		;;
 	esac
