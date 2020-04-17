@@ -1,0 +1,48 @@
+#!/bin/sh
+
+REC=0;
+UP=0;
+LOW=0;
+SED=0;
+
+
+
+rename() {	
+	if [[ "$UP" -eq 1 ]] ; then
+		filename=$(basename "$1")
+		filename=${filename^^}
+		filepath=$(dirname "$1")
+		completePath=$filepath$"/"$filename
+		mv "$1" "$completePath"
+		echo "done"
+	elif [[ "$LOW" -eq 1 ]] ; then
+		echo "low";
+	elif [[ "SED" -eq 1 ]] ; then
+		echo "SED";
+	fi
+}
+
+while [[ -n "$1" ]] ; do
+	case "$1" in
+		"-r") REC=1 ;;
+		"-l") LOW=1 ;;
+		"-u") UP=1 ;;
+		"-h")
+			echo "-r recursion      change all file names in directory and subdirectiories"
+			echo "-l lowerizing     change file name to lower letter"
+			echo "-u uppercasing    change file name to upper letter"   
+			exit ;;
+		*)
+			if [[ "$UP" -eq 0 && "$LOW" -eq 0 && "$SED" -eq 0 ]] ; then
+				SED_PATTERN="$1"
+				SED=1;	
+			else
+				rename $1			
+			fi
+		;;
+	esac
+	shift
+done
+
+
+

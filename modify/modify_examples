@@ -25,61 +25,61 @@ done
 }
 
 
-printDictStructure "$1"
+printDictStructure "fortests"
 
 
 echo ""
 echo ""
 echo ""
 echo ""
-echo "modify -r -u /home/sebastian/Desktop/photo rose jutro monday bob"
-bash /home/sebastian/Desktop/shellScripts/modify/bin/modify -r -u /home/sebastian/Desktop/photo rose jutro monday bob
-printDictStructure "$1"
+echo "modify -r -u fortests rose jutro monday bob"
+bash modify -r -u fortests rose jutro monday bob
+printDictStructure "fortests"
 
 
 echo ""
 echo ""
 echo ""
 echo ""
-echo "modify -r -l /home/sebastian/Desktop/photo ROSE JUTRO MONDAY BOB"
-bash /home/sebastian/Desktop/shellScripts/modify/bin/modify -r -l /home/sebastian/Desktop/photo ROSE JUTRO MONDAY BOB
-printDictStructure "$1"
+echo "modify -r -l fortests ROSE JUTRO MONDAY BOB"
+bash modify -r -l fortests ROSE JUTRO MONDAY BOB
+printDictStructure "fortests"
 
 
 echo ""
 echo ""
 echo ""
 echo ""
-echo "modify -u /home/sebastian/Desktop/photo chocolate sweet"
-bash /home/sebastian/Desktop/shellScripts/modify/bin/modify -u /home/sebastian/Desktop/photo chocolate sweet
-printDictStructure "$1"
+echo "modify -u fortests chocolate sweet"
+bash modify -u fortests chocolate sweet
+printDictStructure "fortests"
 
 
 echo ""
 echo ""
 echo ""
 echo ""
-echo "modify -l /home/sebastian/Desktop/photo CHOCOLATE SWEET"
-bash /home/sebastian/Desktop/shellScripts/modify/bin/modify -l /home/sebastian/Desktop/photo CHOCOLATE SWEET
-printDictStructure "$1"
+echo "modify -l fortests CHOCOLATE SWEET"
+bash modify -l fortests CHOCOLATE SWEET
+printDictStructure "fortests"
 
 
 echo ""
 echo ""
 echo ""
 echo ""
-echo "modify -r s/e/QW/ /home/sebastian/Desktop/photo chocolate sweet bob frankes"
-bash /home/sebastian/Desktop/shellScripts/modify/bin/modify -r s/e/QW/ /home/sebastian/Desktop/photo chocolate sweet bob frankes
-printDictStructure "$1"
+echo "modify -r s/e/QW/ fortests chocolate sweet bob frankes"
+bash modify -r s/e/QW/ fortests chocolate sweet bob frankes
+printDictStructure "fortests"
 
 
 echo ""
 echo ""
 echo ""
 echo ""
-echo "modify -r s/QW/e/ /home/sebastian/Desktop/photo chocolate sweet bob"
-bash /home/sebastian/Desktop/shellScripts/modify/bin/modify -r s/QW/e/ /home/sebastian/Desktop/photo chocolatQW swQWet bob frankQWs
-printDictStructure "$1"
+echo "modify -r s/QW/e/ fortests chocolate sweet bob"
+bash modify -r s/QW/e/ fortests chocolatQW swQWet bob frankQWs
+printDictStructure "fortests"
 
 
 echo ""
@@ -87,7 +87,7 @@ echo ""
 echo ""
 echo ""
 echo "modify -h"
-bash /home/sebastian/Desktop/shellScripts/modify/bin/modify -h
+bash modify -h
 
 
 
@@ -95,8 +95,8 @@ echo ""
 echo ""
 echo ""
 echo ""
-echo "modify -l -r /home/sebastian/Desktop/photo/school => such path does not exist:"
-bash /home/sebastian/Desktop/shellScripts/modify/bin/modify -l -r /home/sebastian/Desktop/photo/school rose
+echo "modify -l -r fortests/school => such path does not exist:"
+bash modify -l -r fortests/school rose
 
 
 
@@ -104,8 +104,8 @@ echo ""
 echo ""
 echo ""
 echo ""
-echo "modify -r -u /home/sebastian/Desktop/photo/school => such path does not exist:"
-bash /home/sebastian/Desktop/shellScripts/modify/bin/modify -r -u /home/sebastian/Desktop/photo/school rose
+echo "modify -r -u fortests/school => such path does not exist:"
+bash modify -r -u fortests/school rose
 
 
 
@@ -113,8 +113,8 @@ echo ""
 echo ""
 echo ""
 echo ""
-echo "modify -u /home/sebastian/Desktop/photo/school => such path does not exist:"
-bash /home/sebastian/Desktop/shellScripts/modify/bin/modify -u /home/sebastian/Desktop/photo/school rose
+echo "modify -u fortests/school => such path does not exist:"
+bash modify -u fortests/school rose
 
 
 
@@ -122,8 +122,8 @@ echo ""
 echo ""
 echo ""
 echo ""
-echo "modify -l /home/sebastian/Desktop/photo/school => such path does not exist:"
-bash /home/sebastian/Desktop/shellScripts/modify/bin/modify -l /home/sebastian/Desktop/photo/school rose
+echo "modify -l fortests/school => such path does not exist:"
+bash modify -l fortests/school rose
 
 
 
@@ -131,16 +131,16 @@ echo ""
 echo ""
 echo ""
 echo ""
-echo "modify -r s/e/FK/ /home/sebastian/Desktop/photo/school => such path does not exist:"
-bash /home/sebastian/Desktop/shellScripts/modify/bin/modify -r "s/e/FK/" /home/sebastian/Desktop/photo/school rose
+echo "modify -r s/e/FK/ fortests/school => such path does not exist:"
+bash modify -r "s/e/FK/" fortests/school rose
 
 
 echo ""
 echo ""
 echo ""
 echo ""
-echo "modify s/e/FK/ /home/sebastian/Desktop/photo => incorrect sed pattern:"
-bash /home/sebastian/Desktop/shellScripts/modify/bin/modify "s/e/FK/gkgh/lgl" /home/sebastian/Desktop/photo/school rose
+echo "modify s/e/FK/ fortests => incorrect sed pattern:"
+bash modify "s/e/FK/gkgh/lgl" fortests/school rose
 
 
 
@@ -149,7 +149,7 @@ echo ""
 echo ""
 echo ""
 echo "Output for no arguments"
-bash /home/sebastian/Desktop/shellScripts/modify/bin/modify
+bash modify
 
 
 
@@ -157,7 +157,7 @@ echo ""
 echo ""
 echo ""
 echo ""
-echo "modify -u -u -u -u /home/sebastian/Desktop/photo chocolate sweet"
-bash /home/sebastian/Desktop/shellScripts/modify/bin/modify -u -u -u -u /home/sebastian/Desktop/photo chocolate sweet
+echo "modify -u -u -u -u fortests chocolate sweet"
+bash modify -u -u -u -u fortests chocolate sweet
 
 
