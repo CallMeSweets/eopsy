@@ -12,69 +12,68 @@
 # define NUM_CHILD 10
 
 # ifdef WITH_SIGNALS
-void onClick(int signal);
-void terminateChild(int signal);
+void onClick(int signal); // handler on interrupt
+void terminateChild(int signal); // handler for child on SIGTERM signal
 char interruptFlag = 0;
 # endif
 
-void sendSIGTERM();
-void forkChild(int i);
+void sendSIGTERM(); // function to kill all childs processess
+void forkChild(int i); // function to create child
 
-pid_t childProcessTable[NUM_CHILD];
-int numCreatedChilds = 0;
+pid_t childProcessTable[NUM_CHILD]; // table for childs
+int numCreatedChilds = 0; // number of created childs
 
 int main() 
 { 
     printf("parent[%d]: created\n", getpid()); 
      	
  
-     for(int i=0;i<NUM_CHILD;i++)
+     for(int i=0;i<NUM_CHILD;i++) //loop to create childs
     { 
 	#ifdef WITH_SIGNALS
-	   for(int j=0;j<NSIG; j++)
+	   for(int j=1;j<NSIG; j++)
  	   {
-		signal(SIGINT, SIG_IGN);
+		signal(j, SIG_IGN);  // send SIG_IGN to child, to ignore INTERRUPT, SIGINT means INTERRUPT
 	   } 	
-	   signal(SIGCHLD, SIG_DFL);
-	   signal(SIGINT, onClick);
+	   signal(SIGCHLD, SIG_DFL); // set default signal configuration for child
+	   signal(SIGINT, onClick); // sign my function as reaction for INTERRUPT
 	#endif
 	
 	sleep(1);
-	forkChild(i);
+	forkChild(i); // function to create child
 
 	#ifdef WITH_SIGNALS
-	   if(interruptFlag == 1)
+	   if(interruptFlag == 1) // check if interrupt was clicked
 	     {
 	      printf("parent[%d]: keyboard interrupt during creation process\n", getpid());
-	      sendSIGTERM();
+	      sendSIGTERM(); // function which send signal about interrupt to all created childs
   	      break;
 	     }
 	#endif
 		
     } 
 	
-    pid_t pidTerminatedProcess[numCreatedChilds];
-    int exitCodeTerminatedProcess[numCreatedChilds];
-    int exitProcesses = 0;
+    pid_t pidTerminatedProcess[numCreatedChilds]; //  table for terminated childs
+    int exitCodeTerminatedProcess[numCreatedChilds]; // table for exit status of all childs
+    int exitProcesses = 0; // number of correct terminated childs
     int status;
 
-    if(numCreatedChilds == NUM_CHILD)
-    {
-    	for(int i=0;i<NUM_CHILD;i++)
+  
+	for(int i=0;i<numCreatedChilds;i++)
 	{
-    	   pidTerminatedProcess[i] = wait(&status); // It suspends execution of the calling process until one of its children terminates
-	
+	   pidTerminatedProcess[i] = wait(&status); // It suspends execution of the calling process until one of its children terminates
+
 	   if(WIFEXITED(status)) // returns true if the child terminated normally.
 	   {
 		exitCodeTerminatedProcess[i] = WEXITSTATUS(status); //returns the exit status of the child.
 		exitProcesses++;
 	   }
 	} 
-    }
+    
 
     printf("parent[%d]: No more child to be processed\n", getpid()); 
     
-    for(int i=0;i<NUM_CHILD;i++)
+    for(int i=0;i<numCreatedChilds;i++) // loop to printf info
     {
 	printf("child[%d]: terminated, exit status -> %d\n", pidTerminatedProcess[i], exitCodeTerminatedProcess[i]); 
     }
@@ -92,17 +91,17 @@ int main()
 } 
 
 
-void forkChild(int i) {
+void forkChild(int i) { // function to create child
     pid_t childPid;
 
-    switch (childPid = fork()) 
+    switch (childPid = fork()) // create child
         {
-    	    case -1:
+    	    case -1: // if negative value then was a fail during child creation
 		printf("fork() failed, child not created\n");
-		sendSIGTERM();
+		sendSIGTERM(); // kill all created childs
 		exit(1);
 		break;
-    	    case 0: //child	
+    	    case 0: //value when child was created	
 	
 		#ifdef WITH_SIGNALS
 		signal(SIGINT, SIG_IGN); //ingore interrupt 
@@ -115,32 +114,32 @@ void forkChild(int i) {
 		printf("child[%d]: execution is completed \n",getpid());
 		exit(0); 
 		break;
-	    default: // parent
-		childProcessTable[i] = childPid;
-		numCreatedChilds++;
+	    default: // is 1 when parent was created, but default take it into account
+		childProcessTable[i] = childPid; // add created child process to the table
+		numCreatedChilds++; // increase number of created childs
 		break;
  	}
 }
 
-void sendSIGTERM(){
-    for(int i=0; i<NUM_CHILD; i++)
+void sendSIGTERM(){ // function to kill all childs
+    for(int i=0; i<numCreatedChilds; i++) // loop to kill all childs
     {
 	printf("parent[%d] sending SIGTERM to child[%d] \n", getpid(), childProcessTable[i]);
-	kill(childProcessTable[i], SIGTERM); 
+	kill(childProcessTable[i], SIGTERM);  // send termination singal to child
     }
 }
 
 
 #ifdef WITH_SIGNALS
-void onClick(int signal)
+void onClick(int signal) // handler on interrupt
 {
     printf("parent[%d]: interrupt click \n", getpid());
-    interruptFlag = 1; 
+    interruptFlag = 1; // if interrupt was clicked then change flag
 }
 
-void terminateChild(int signal)
+void terminateChild(int signal) // handler on child SIGTERM signal
 {
 	printf("child[%d]: process terminated\n", (int)getpid());
-	exit(1);
+	exit(1); // terminate child process
 }
 #endif
