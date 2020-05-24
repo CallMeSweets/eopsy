@@ -10,5 +10,6 @@ compile: barber.o
 barber.o :
 	cc -c barber.c
 
+
 clean: 
 	rm barber.o
