@@ -17,9 +17,11 @@
 #define NUM_OF_CHAIRS 5
 
 
+#define NUM_OF_CLIENTS_GENERATORS 1
+
 const key_t STATE_MUTEX_KEY =  0x1000;
 const key_t BARBERS_SEMAPHORES_KEY = 0x2000;
-const key_t SHARED_MEMORY_KEY = 0x3000;
+const key_t SHARED_MEMORY_KEY = 0x6000;
 
 
 void client(int ALL_BARBERS, int barberIndex);
@@ -34,6 +36,9 @@ void terminate(unsigned int indexOfLastCreatedProcess, pid_t *processesList);
 struct shared_mem {
 	int maleClients;	 // 1
 	int femaleClients;	 // 2
+	int femaleBlockedBarbers;
+	int maleBlockedBarbers;
+	int anyBlockedBarbers;
 } *shm;
 
 int main() {
@@ -56,6 +61,9 @@ pid_t processesList[ALL_BARBERS];
 	
 	shm->maleClients = 1;
 	shm->femaleClients = 1;
+	shm->femaleBlockedBarbers = 0;
+	shm->maleBlockedBarbers = 0;
+	shm->anyBlockedBarbers = 0;	
 
 	int state_mutex = semget(STATE_MUTEX_KEY, 1, 0666 | IPC_CREAT);
 	if(state_mutex < 0) {
@@ -84,8 +92,8 @@ pid_t processesList[ALL_BARBERS];
 	}
 
 	//init semaphores
-	unsigned int zeros[ALL_BARBERS + 1];
-	for(int i = 0; i < ALL_BARBERS + 1; i++) {
+	unsigned int zeros[ALL_BARBERS + NUM_OF_CLIENTS_GENERATORS];
+	for(int i = 0; i < ALL_BARBERS + NUM_OF_CLIENTS_GENERATORS; i++) {
 		zeros[i] = 0; 
 	}
 	sem_un.array = zeros;
@@ -95,7 +103,7 @@ pid_t processesList[ALL_BARBERS];
 	}
 
 	//barber creation and client generator creation
-	for(int i = 0; i < ALL_BARBERS + 1; i++){
+	for(int i = 0; i < ALL_BARBERS + NUM_OF_CLIENTS_GENERATORS; i++){
 	pid_t pid = fork();
 	
 	if(pid < 0) { //process not created
@@ -165,6 +173,7 @@ void barber(int barberType, int ALL_BARBERS, int barberIndex) {
 	     	    shm->maleClients--;
 		}else
 		{
+		    shm->maleBlockedBarbers++;
 		    lock(barbers_sems, barberIndex);
 		}
 		break;
@@ -174,6 +183,8 @@ void barber(int barberType, int ALL_BARBERS, int barberIndex) {
 	     	    shm->femaleClients--;
 		}else
 		{
+		    shm->femaleBlockedBarbers++;
+		    unlock(state_mutex, 0);
 		    lock(barbers_sems, barberIndex);
 		}
 		break;
@@ -189,6 +200,8 @@ void barber(int barberType, int ALL_BARBERS, int barberIndex) {
 		   break;	
 		}else
 		{
+		    shm->anyBlockedBarbers++;
+		    unlock(state_mutex, 0);
 		    lock(barbers_sems, barberIndex);
 		}
 	}
@@ -210,35 +223,39 @@ void client(int ALL_BARBERS, int barberIndex) {
    srand(time(0)); 
    while(1) {
 	int state_mutex = semget(STATE_MUTEX_KEY, 1, 0666);
-	int barbers_sems = semget(BARBERS_SEMAPHORES_KEY, ALL_BARBERS + 1, 0666);
+	int barbers_sems = semget(BARBERS_SEMAPHORES_KEY, ALL_BARBERS + NUM_OF_CLIENTS_GENERATORS, 0666);
 	if(state_mutex < 0 || barbers_sems < 0) {
 		perror("grab_forks: error");
 		exit(1);
 	}
 
 	lock(state_mutex, 0);
+	int clientNum = (rand() % 2) + 1;	// 1 - male, 2 - female	
 
 	  if((shm->maleClients + shm->femaleClients) > NUM_OF_CHAIRS){
 		// klient nie czeka w kolejce
+	  }else if(clientNum == 1)
+	  {
+		if(shm->maleClients == 0)
+	  	{
+		unlock(barbers_sems, shm->maleBlockedBarbers + MALE_BARBERS);
+		shm->maleBlockedBarbers--; 
+	 	}
+		shm->maleClients++;
+		printf("New male client came!!\n");
+	  }else if(clientNum == 2)
+	  {
+		if(shm->femaleClients == 0)
+	  	{
+		unlock(barbers_sems, shm->femaleBlockedBarbers + FEMALE_BARBERS);
+		shm->femaleBlockedBarbers--; 
+	 	}
+		shm->femaleClients++;
+		printf("New female client came!!\n");
 	  }
-	  else{
-		   int clientNum = (rand() % 2) + 1;	// 1 - male, 2 - female
-		   printf("client num: %d\n", clientNum);
-		   if(clientNum == 1)
-		   {
-			shm->maleClients++;
-			printf("New male client came!!\n");
-			unlock(barbers_sems, 0);
-		   }
-		   else
-		   {
-			shm->femaleClients++;
-			printf("New female client came!!\n");
-			unlock(barbers_sems, 2);
-		   }
-		
-		printf("People in queue: male - %d, female - %d\n", shm->maleClients, shm->femaleClients);
-	  }
+	  	
+	printf("People in queue: male - %d, female - %d\n", shm->maleClients, shm->femaleClients);
+
 	unlock(state_mutex, 0);
       /* generate random number, waittime, for length of wait until next haircut or next try.  Max value from command line. */
 	  waittime = (rand() % 4) + 1;
