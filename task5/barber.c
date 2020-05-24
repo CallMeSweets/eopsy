@@ -20,7 +20,7 @@
 #define NUM_OF_CLIENTS_GENERATORS 1
 
 const key_t STATE_MUTEX_KEY =  0x1000;
-const key_t BARBERS_SEMAPHORES_KEY = 0x2000;
+const key_t BARBERS_SEMAPHORES_KEY = 0x3000;
 const key_t SHARED_MEMORY_KEY = 0x6000;
 
 
@@ -64,6 +64,8 @@ pid_t processesList[ALL_BARBERS];
 	shm->femaleBlockedBarbers = 0;
 	shm->maleBlockedBarbers = 0;
 	shm->anyBlockedBarbers = 0;	
+	
+	printf("People in queue: male - %d, female - %d\n", shm->maleClients, shm->femaleClients);
 
 	int state_mutex = semget(STATE_MUTEX_KEY, 1, 0666 | IPC_CREAT);
 	if(state_mutex < 0) {
@@ -121,7 +123,7 @@ pid_t processesList[ALL_BARBERS];
 	}
     }
 
-    sleep(30);
+    sleep(50);
 
     terminate(ALL_BARBERS, processesList);
     return 0;
@@ -157,7 +159,7 @@ void barber(int barberType, int ALL_BARBERS, int barberIndex) {
    int whichSexClients;
    while(1) {
 	int state_mutex = semget(STATE_MUTEX_KEY, 1, 0666);
-	int barbers_sems = semget(BARBERS_SEMAPHORES_KEY, ALL_BARBERS, 0666);
+	int barbers_sems = semget(BARBERS_SEMAPHORES_KEY, ALL_BARBERS + NUM_OF_CLIENTS_GENERATORS, 0666);
 	if(state_mutex < 0 || barbers_sems < 0) {
 		perror("grab_forks: error");
 		exit(1);
@@ -171,9 +173,13 @@ void barber(int barberType, int ALL_BARBERS, int barberIndex) {
 		if(shm->maleClients > 0)
 		{
 	     	    shm->maleClients--;
+		    worktime = (rand() % 4) + 1;
+	  	    printf("Barber male [pid]: %d Cutting hair for %d seconds\n", getpid(),worktime);
 		}else
 		{
 		    shm->maleBlockedBarbers++;
+		    unlock(state_mutex, 0);
+		    printf("Male barber goes sleep index: %d\n", barberIndex);
 		    lock(barbers_sems, barberIndex);
 		}
 		break;
@@ -181,10 +187,13 @@ void barber(int barberType, int ALL_BARBERS, int barberIndex) {
 		if(shm->femaleClients > 0)
 		{
 	     	    shm->femaleClients--;
+		    worktime = (rand() % 4) + 1;
+	  	    printf("Barber female [pid]: %d Cutting hair for %d seconds\n", getpid(),worktime);
 		}else
 		{
 		    shm->femaleBlockedBarbers++;
 		    unlock(state_mutex, 0);
+		    printf("Female barber goes sleep index: %d\n", barberIndex);
 		    lock(barbers_sems, barberIndex);
 		}
 		break;
@@ -193,23 +202,25 @@ void barber(int barberType, int ALL_BARBERS, int barberIndex) {
 		if(whichSexClients == 1 && shm->maleClients > 0)
 		{
 		   shm->maleClients--;
+		   worktime = (rand() % 4) + 1;
+	  	   printf("Barber any male [pid]: %d Cutting hair for %d seconds\n", getpid(),worktime);
 		   break;	
 		}else if(whichSexClients == 2 && shm->femaleClients > 0)
 		{
 		   shm->femaleClients--;
+		   worktime = (rand() % 4) + 1;
+	  	   printf("Barber any female [pid]: %d Cutting hair for %d seconds\n", getpid(),worktime);
 		   break;	
 		}else
 		{
 		    shm->anyBlockedBarbers++;
 		    unlock(state_mutex, 0);
+		    printf("Any barber goes sleep [pid]: %d\n", getpid());
 		    lock(barbers_sems, barberIndex);
 		}
 	}
      unlock(state_mutex, 0);
-       /* generate random number, worktime, from 1-4 seconds for length of haircut.  */
-	  worktime = (rand() % 4) + 1;
-      /* cut hair for worktime seconds (really just call sleep()) */
-	  printf("Barber type %d: Cutting hair for %d seconds\n", barberType,worktime);
+
 	  printf("People in queue: male - %d, female - %d\n", shm->maleClients, shm->femaleClients);
 	  sleep(worktime);
     
@@ -236,22 +247,34 @@ void client(int ALL_BARBERS, int barberIndex) {
 		// klient nie czeka w kolejce
 	  }else if(clientNum == 1)
 	  {
-		if(shm->maleClients == 0)
-	  	{
-		unlock(barbers_sems, shm->maleBlockedBarbers + MALE_BARBERS);
-		shm->maleBlockedBarbers--; 
-	 	}
-		shm->maleClients++;
 		printf("New male client came!!\n");
+
+		if(shm->maleClients == 0 && shm->maleBlockedBarbers > 0)
+	  	{
+		  printf("Male barber wake up: %d\n", shm->maleBlockedBarbers - 1);
+		  unlock(barbers_sems, shm->maleBlockedBarbers - 1);
+		  shm->maleBlockedBarbers--; 
+		  shm->maleClients++;
+	 	}else
+		{
+		  shm->maleClients++;
+		}
 	  }else if(clientNum == 2)
 	  {
-		if(shm->femaleClients == 0)
-	  	{
-		unlock(barbers_sems, shm->femaleBlockedBarbers + FEMALE_BARBERS);
-		shm->femaleBlockedBarbers--; 
-	 	}
-		shm->femaleClients++;
 		printf("New female client came!!\n");
+
+		if(shm->femaleClients == 0 && shm->femaleBlockedBarbers > 0)
+	  	{
+		  printf("Female barber wake up: %d\n", shm->femaleBlockedBarbers);
+		  shm->femaleClients++;
+		  unlock(barbers_sems, shm->femaleBlockedBarbers + MALE_BARBERS - 1);
+		  shm->femaleBlockedBarbers--; 
+	 	}else
+		{
+		  shm->femaleClients++;
+		}
+	    
+		
 	  }
 	  	
 	printf("People in queue: male - %d, female - %d\n", shm->maleClients, shm->femaleClients);
