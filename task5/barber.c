@@ -11,7 +11,7 @@
 #include<time.h>
 
 
-#define MALE_BARBERS 2
+#define MALE_BARBERS 2 
 #define FEMALE_BARBERS 2
 #define BOTH_BARBERS 3
 #define NUM_OF_CHAIRS 20
@@ -218,7 +218,15 @@ void barber(int barberType, int ALL_BARBERS, int barberIndex) {
 		}
 		break;
 	   case 3:	// male+female barber 
-		if(shm->maleClients > shm->femaleClients) // if there is more male clients -> take male client
+		if(shm->femaleClients == 0 && shm->maleClients == 0) // if no client go sleep
+		{
+		// the index of sleeping female+male barber is saved in array
+		    shm->anyBlockedBarbers[getFirstFreeIndex(shm->anyBlockedBarbers, BOTH_BARBERS)] = barberIndex;
+		    printf("SLEEP Any barber index: %d\n", barberIndex); // printf info
+		    unlock(state_mutex, 0);	// unlock critical part of code before sleep
+		    lock(barbers_sems, barberIndex); // sleep barber process
+		}
+		else if(shm->maleClients > shm->femaleClients) // if there is more male clients -> take male client
 		{
 		   shm->maleClients--; 		// take male client
 		   worktime = (rand() % 4) + 1;	// rand work time
@@ -228,13 +236,6 @@ void barber(int barberType, int ALL_BARBERS, int barberIndex) {
 		   shm->femaleClients--;	// take female client
 		   worktime = (rand() % 4) + 1;	// rand work time
 	  	   printf("CUTTING HAIR Barber any female [pid]: %d, seconds: %d\n", getpid(),worktime); // printf info	
-		}else if(shm->femaleClients == 0 && shm->maleClients == 0) // if no client go sleep
-		{
-		// the index of sleeping female+male barber is saved in array
-		    shm->anyBlockedBarbers[getFirstFreeIndex(shm->anyBlockedBarbers, BOTH_BARBERS)] = barberIndex;
-		    printf("SLEEP Any barber index: %d\n", barberIndex); // printf info
-		    unlock(state_mutex, 0);	// unlock critical part of code before sleep
-		    lock(barbers_sems, barberIndex); // sleep barber process
 		}
 	    	break;
 	}
@@ -352,8 +353,8 @@ void terminate(unsigned int indexOfLastCreatedProcess, pid_t *processesList)
 
 // when barber wake up, remove him from array of blockedBarbers==sleeping barbers
 void moveBarbersIndexes(int blockedBarbers[], int size){
-	for(int i = 0; i < size-1; i++)
-	{
+	for(int i = 0; i < size+1; i++)
+	{			
 	   blockedBarbers[i] = blockedBarbers[i+1];
 	}
 }
@@ -363,7 +364,7 @@ void moveBarbersIndexes(int blockedBarbers[], int size){
 // get first index when that value appears to save there the barber index which goes sleep
 int getFirstFreeIndex(int blockedBarbers[], int size)
 {
-	for(int i = 0; i < size-1; i++)
+	for(int i = 0; i < size; i++)
 	{
 	   if(blockedBarbers[i] == -1)
 		return i;
