@@ -90,7 +90,7 @@ pid_t processesList[ALL_BARBERS + NUM_OF_CLIENTS_GENERATORS]; // array for all b
 		unsigned int *array;
 	} sem_un;
 
-	//init mutex counter
+//init mutex counter
 	sem_un.val = 1; 	// set access
 	if(semctl(state_mutex, 0, SETVAL, sem_un) < 0) {
 		perror("semctl: state mutex value failed to set");
@@ -177,7 +177,7 @@ void barber(int barberType, int ALL_BARBERS, int barberIndex) {
 	int state_mutex = semget(STATE_MUTEX_KEY, 1, 0666);  // get state_mutex for lock/unlock critical part of code
 	int barbers_sems = semget(BARBERS_SEMAPHORES_KEY, ALL_BARBERS, 0666); // get semaphore for stop/start barber process
 	if(state_mutex < 0 || barbers_sems < 0) { // check if correctly created
-		perror("grab_forks: error");
+		perror("barbers semaphores wrong created: error");
 		exit(1);
 	}
 
@@ -257,7 +257,7 @@ void client(int ALL_BARBERS, int barberIndex) {
 	int state_mutex = semget(STATE_MUTEX_KEY, 1, 0666);	// get state_mutex for lock/unlock critical part of code
 	int barbers_sems = semget(BARBERS_SEMAPHORES_KEY, ALL_BARBERS, 0666);	// get semaphore for stop/start barber process
 	if(state_mutex < 0 || barbers_sems < 0) {	// check if correctly created
-		perror("grab_forks: error");
+		perror("barbers semaphores wrong created: error");
 		exit(1);
 	}
 
