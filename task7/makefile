@@ -1,15 +1,15 @@
-NAME = barbers
+NAME = philosophers
 
 COMPILER = cc
 
 CFLAGS  = -Wall -std=c99
 
-compile: barbers.o
-	$(COMPILER) $(FLAGS) -o $(NAME) barbers.o
+compile: philosophers.o
+	$(COMPILER) $(FLAGS) -o $(NAME) philosophers.o -lpthread
 
 copy.o :
-	cc -c barbers.c
+	cc -c philosophers.c
 
 
 clean: 
-	rm barbers.o
+	rm philosophers.o
