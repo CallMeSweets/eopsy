@@ -1,0 +1,4 @@
+2. Why m mutex is initialized with 1 and mutexes from the array s are initialized with 0's?
+
+Mutex m is initialized with 1 because when we enter a critical section that compares or changes philosopher state we don't want any other thread to check or change it's current state as it may be changed by thread which currently possesed mutex m. 
+Array s of mutexes is initialized with 0 to block philosopher thread after an attempt to grab forks. Such philosopher may be unblocked by it's neighboring philosopher which signals it's neighboring philosophers that they cay move to EATING phase via test method if conditions are met.
